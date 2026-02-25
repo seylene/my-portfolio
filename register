@@ -1,0 +1,83 @@
+<?php
+include "connect.php";
+
+$error_message = "";  // Variable to store error message
+$success_message = "";  // Variable to store success message
+
+if (isset($_POST['submit'])) {
+    $username = $_POST['username'];
+    $password = $_POST['password'];
+    $contact = $_POST['contact'];
+
+    // Verifying unique username
+    $verify_query = mysqli_query($conn, "SELECT username FROM users WHERE username='$username'");
+
+    if (mysqli_num_rows($verify_query) != 0) {
+        $error_message = "Username already taken. Try another one.";
+    } else {
+        mysqli_query($conn, "INSERT INTO users(username, password, contact_number) VALUES('$username','$password','$contact')");
+        $success_message = "Registration Successfully!";
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="form.css">
+    <title>Register</title>
+</head>
+<body>
+    <div class="container">
+        <div class="box form-box">
+            <h1>Sign up</h1>
+
+            <!-- Display error message if any -->
+            <?php if ($error_message != ""): ?>
+                <div class="error-message">
+                    <p><?php echo $error_message; ?></p>
+                </div>
+            <?php endif; ?>
+
+            <!-- Display success message if any -->
+            <?php if ($success_message != ""): ?>
+                <div class="success-message">
+                    <p><?php echo $success_message; ?></p>
+                </div>
+            <?php endif; ?>
+
+            <form action="" method="post">
+                <!-- Username field -->
+                <div class="field-input">
+                    <label for="username">Username</label>
+                    <input type="text" name="username" id="username" autocomplete="off" required>
+                </div>
+
+                <!-- Password field -->
+                <div class="field-input">
+                    <label for="password">Password</label>
+                    <input type="password" name="password" id="password" autocomplete="off" required>
+                </div>
+
+                <!-- Contact number field -->
+                <div class="field-input">
+                    <label for="contact">Contact number</label>
+                    <input type="number" name="contact" id="contact" autocomplete="off" required>
+                </div>
+
+                <!-- Submit button -->
+                <div class="field">
+                    <input type="submit" name="submit" value="Register" required>
+                </div>
+
+                <!-- Sign in link -->
+                <div class="links">
+                    Already have an account? <a href="login.php">Sign in now</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
