@@ -1,0 +1,136 @@
+
+<?php
+include "connect.php"; // Include your database connection file
+
+$error_message = ""; // Variable to store error message
+
+if (isset($_POST['login'])) {
+    $username = $_POST['username'];
+    $password = $_POST['password'];
+
+    // Check if the username exists in the database
+    $query = mysqli_query($conn, "SELECT * FROM users WHERE username='$username'");
+    $user = mysqli_fetch_assoc($query);
+
+    if ($user) {
+        // Verify password
+        if ($user['password'] === $password) {
+            // Redirect to the home page if login is successful
+            header("Location: eseyl.html");
+            exit(); // Ensure no further code is executed after redirection
+        } else {
+            // Invalid password
+            $error_message = "Invalid password";
+        }
+    } else {
+        // Invalid username
+        $error_message = "Invalid username";
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="form.css">
+    <title>Login</title>
+</head>
+<body>
+<?php
+require_once 'vendor/autoload.php';
+
+// init configuration
+$clientID = '306637591983-na5aihks12co653dr756f3qcroaultni.apps.googleusercontent.com';
+$clientSecret = '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';
+$redirectUri = 'http://localhost/portfolio/login.php';
+
+// create Client Request to access Google API
+$client = new Google_Client();
+$client->setClientId($clientID);
+$client->setClientSecret($clientSecret);
+$client->setRedirectUri($redirectUri);
+$client->addScope("email");
+$client->addScope("profile");
+
+// authenticate code from Google OAuth Flow
+if (isset($_GET['code'])) {
+    $token = $client->fetchAccessTokenWithAuthCode($_GET['code']);
+    
+    // Check if token contains errors
+    if (isset($token['error'])) {
+        echo 'Google authentication failed: ' . $token['error'];
+    } else {
+        // Set access token
+        $client->setAccessToken($token);
+
+        // get profile info
+        $google_oauth = new Google_Service_Oauth2($client);
+        $google_account_info = $google_oauth->userinfo->get();
+        $email =  $google_account_info->email;
+        $name =  $google_account_info->name;
+
+        // Now you can use this profile info to create an account or log the user in
+        // For now, display the name and email
+        //echo "<p>Logged in as $name ($email)</p>";
+
+        // Redirect to the home page after successful login
+    header("Location: eseyl.html");
+    exit(); // Ensure that no further code is executed after redirection
+    }
+} else {
+    // Create the login URL for Google
+    $googleLoginUrl = $client->createAuthUrl();
+}
+?>
+    <div class="container">
+        <div class="box form-box">
+            <h1>Login</h1>
+
+            <!-- Display error message if any -->
+            <?php if ($error_message != ""): ?>
+                <div class="error-message">
+                    <p><?php echo $error_message; ?></p>
+                </div>
+            <?php endif; ?>
+
+            <form action="" method="post">
+                <!-- Username field -->
+                <div class="field-input">
+                    <label for="username">Username</label>
+                    <input type="text" name="username" id="username" autocomplete="off" required>
+                </div>
+
+                <!-- Password field -->
+                <div class="field-input">
+                    <label for="password">Password</label>
+                    <input type="password" name="password" id="password" autocomplete="off" required>
+                </div>
+
+                <!-- Login button -->
+                <div class="field">
+                    <input type="submit" name="login" value="Login">
+                </div>
+
+                <!-- Social login buttons -->
+                <div class="social-login">
+                    <button type="button" class="btn facebook">Login with Facebook</button>
+                    <!-- Replace the Google login button with just a styled link -->
+                <div class="social-login">
+                    <a href="<?php echo $googleLoginUrl; ?>" class="btn google">Login with Google</a>
+                </div>
+
+
+                </div>
+
+                <!-- Sign up link -->
+                <div class="links">
+                    Don't have an account? <a href="register.php">Sign up now</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>
